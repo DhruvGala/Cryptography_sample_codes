@@ -12,7 +12,7 @@ import java.util.Scanner;
  * 		Now working on developing the entire runs that will call f-function
  * 		16 times throughout to run the DES algorithm.
  * 		
- * 		<version 1.1>
+ * 	<version 1.1>
  * 		implemented the complete functionality of the DES algorithm
  * 		now testing and debugging code to update if any error found.
  * 		Also working now on making the code compact and more 
@@ -637,23 +637,6 @@ public class MyDES {
 		int[][] data = feedInput();
 		int[] x = data[0];
 		int[] k = data[1];
-		
-		/*System.out.println("-----------Plain Text----------");
-		for(int i=0;i<64;i++){
-			System.out.print(x[i]);
-		}
-		
-		System.out.println("-----------key----------");
-		for(int i=0;i<64;i++){
-			System.out.print(k[i]);
-		}
-		
-		x = LS1(k);
-		
-		System.out.println("-----------afte LS 1 on k----------");
-		for(int i=0;i<64;i++){
-			System.out.print(x[i]);
-		}*/
 		
 		int[] ciphertext = carryOutDES(x, k);
 		
