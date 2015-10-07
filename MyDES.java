@@ -1,13 +1,22 @@
+import java.util.Scanner;
+
 /*
  * filename: MyDES.java
  * 
  * version: 1.0 10/06/2015
+ * 			1.1 10/07/2015
  * 
- * Log: implemented the S-box logic along with f function logic 
+ * Log: <version 1.0>
+ * 		implemented the S-box logic along with f function logic 
  * 		and IP and inverse IP logic involved in DES.
  * 		Now working on developing the entire runs that will call f-function
  * 		16 times throughout to run the DES algorithm.
- * 
+ * 		
+ * 		<version 1.1>
+ * 		implemented the complete functionality of the DES algorithm
+ * 		now testing and debugging code to update if any error found.
+ * 		Also working now on making the code compact and more 
+ * 		object oriented.
  */
 
 /**
@@ -19,7 +28,7 @@
  */
 public class MyDES {
 
-	
+	static int[] keyDash;
 	/**
 	 * This method is a generalized method for implementing bitwise XOR operator.
 	 * 
@@ -401,52 +410,256 @@ public class MyDES {
 	
 	
 	/**
+	 * This method takes the input of 64 bit plaintext and key.
+	 *  
+	 * @return
+	 */
+	public static int[][] feedInput(){
+		Scanner takeInput = new Scanner(System.in);
+		
+		int[][] sendThis = new int[2][64];
+		//System.out.print("Enter the plaintext: ");
+		String input = takeInput.nextLine();
+		if(input.charAt(0) == 0){
+			sendThis[0][0] =0;
+		}
+		else
+		{
+			sendThis[0][0] =1;
+		}
+		
+		for(int i=1;i<input.length();i++){
+			sendThis[0][i] = Integer.parseInt(input.substring(i-1,i));
+		}
+		
+		//System.out.print("Enter the key:");
+		input = takeInput.nextLine();
+		if(input.charAt(0) == 0){
+			sendThis[1][0] =0;
+		}
+		else
+		{
+			sendThis[1][0] =1;
+		}
+		
+		for(int i=1;i<input.length();i++){
+			sendThis[1][i] = Integer.parseInt(input.substring(i-1,i));
+		}
+		takeInput.close();
+		return sendThis;
+	}
+	
+	
+	/**
+	 * This method is the actual logic of defining the PC-1 to generate the keys
+	 * 
+	 * @param k
+	 * @return
+	 */
+	public static int[] PC1(int[] k){
+		int PC1table[] = {
+				57,49,41,33,25,17,9,1,
+				58,50,42,34,26,18,10,2,
+				59,51,43,35,27,19,11,3,
+				60,52,44,36,63,55,47,39,
+				31,23,15,7,62,54,46,38,
+				30,22,14,6,61,53,45,37,
+				29,21,13,5,28,20,12,4
+				};
+		
+		int key[] = new int[56];
+		
+		for(int i=0;i<PC1table.length;i++){
+			key[i] = k[PC1table[i]-1];
+		}
+		
+		return key;
+	}
+	
+	
+	/**
+	 * This method is the logic to implement the PC2 mechanism
+	 * for generating the keys.
+	 * 
+	 * @param k
+	 * @return
+	 */
+	public static int[] PC2(int[] k){
+		//System.out.println("i/p length:"+k.length);
+		int PC2table[] = {
+			14,17,11,24,1,5,3,28,
+			15,6,21,10,23,19,12,4,
+			26,8,16,7,27,20,13,2,
+			41,52,31,37,47,55,30,40,
+			51,45,33,48,44,49,39,56,
+			34,53,46,42,50,36,29,32
+		};
+		
+		int key[] = new int[48];
+		
+		for(int i=0;i<PC2table.length;i++){
+			key[i] = k[PC2table[i]-1];
+		}
+		
+		return key;
+	}
+	
+	
+	/**
+	 * This method performs the left shift operation on the input bitstream
+	 * 
+	 * @param bitstream
+	 * @return
+	 */
+	public static int[] LS1(int[] bitstream){
+		int temp = bitstream[0];
+		
+		for(int i=1;i<bitstream.length;i++){
+			bitstream[i-1] = bitstream[i];
+		}
+		
+		bitstream[bitstream.length-1] = temp;
+		
+		return bitstream;
+	}
+	
+	
+	
+	/**
+	 * this method carries out the transformation on the key side logic.
+	 * 
+	 * @return
+	 */
+	public static int[] transform1(){
+		int[] C = new int[28],D = new int[28];
+		
+		/**
+		 * first we split the input key into two parts.
+		 * 
+		 */
+		for(int i =0;i<keyDash.length/2;i++){
+			C[i] = keyDash[i];
+			D[i] = keyDash[i+28];
+		}
+		
+		C = LS1(C);
+		D = LS1(D);
+		int[] returnThis = new int[56];
+		
+		for(int i=0;i<28;i++){
+			returnThis[i] = C[i];
+			returnThis[i+28] = D[i];
+		}
+		
+		keyDash = returnThis;
+		int[] result = PC2(returnThis);
+		
+		return result;
+	}
+	
+	
+	/**
+	 * This method generates all the different keys needed for each rounds.
+	 * 
+	 * @return
+	 */
+	public static int[] geenerateKeys(){
+		int[] key = transform1();
+		//int[] keyD = PC2(key);
+		
+		return key;
+	}
+	
+	
+	/**
+	 * This method carries out the actual DES process by calling other functional methods.
+	 * 
+	 * @param plaintext
+	 * @param key
+	 * @return
+	 */
+	public static int[] carryOutDES(int[] plaintext, int[] key){
+		keyDash = PC1(key);
+		
+		int[] x = IP(plaintext);
+		
+		
+		for(int iterations = 0 ; iterations<16; iterations++){
+			key = geenerateKeys();
+			x = Rounds(x, key);
+			
+		}
+		
+		x = inverseIP(x);
+		
+		return x;
+		
+	}
+	
+	
+	/**
+	 * The logic of this method is to manipulate the bits and proceed with the 
+	 * encryption process of DES algorithm.
+	 * 
+	 * @param x
+	 * @param k
+	 * @return
+	 */
+	public static int[] Rounds(int[] x,int[] k ){
+		int[] L = new int[32],R = new int[32];
+		
+		for(int i =0;i<x.length/2;i++){
+			L[i] = x[i];
+			R[i] = x[i+32];
+		}
+		
+		//int[] Lnext = R;
+		int[] temp = functionF(R, k);
+		int[] result = XOR(temp, L);
+		
+		int[] returnThis = new int[64];
+		//returnThis = R;
+		
+		for(int i=0;i<32;i++){
+			returnThis[i] = R[i];
+			returnThis[i+32] = result[i];
+		}
+		
+		return returnThis;
+	}
+	
+	
+	/**
 	 * 
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		/*int a[] = {0,1,0,1,0,0};
-		int b[] = {1,1,0,0,1,0};
-		int[] c = XOR(a,b);
-		for(int i=0;i<c.length;i++){
-			System.out.print(c[i]);
+		int[][] data = feedInput();
+		int[] x = data[0];
+		int[] k = data[1];
+		
+		/*System.out.println("-----------Plain Text----------");
+		for(int i=0;i<64;i++){
+			System.out.print(x[i]);
+		}
+		
+		System.out.println("-----------key----------");
+		for(int i=0;i<64;i++){
+			System.out.print(k[i]);
+		}
+		
+		x = LS1(k);
+		
+		System.out.println("-----------afte LS 1 on k----------");
+		for(int i=0;i<64;i++){
+			System.out.print(x[i]);
 		}*/
 		
-		/*int[] a = {
-			1,1,1,1,1,1,1,1,
-			1,1,1,1,1,1,1,1,
-			1,1,1,1,1,1,1,1,
-			1,1,1,1,1,1,1,1
-		};
+		int[] ciphertext = carryOutDES(x, k);
 		
-		int[] b ={
-				1,1,1,1,1,1,1,1,
-				1,1,1,1,1,1,1,1,
-				1,1,1,1,1,1,1,1,
-				1,1,1,1,1,1,1,1,
-				1,1,1,1,1,1,1,1,
-				1,1,1,1,1,1,1,1
-		};
-		
-		int[] d ={
-				0,0,0,0,0,1,1,1,
-				1,1,1,1,1,1,1,1,
-				1,1,1,1,1,1,1,1,
-				1,1,1,1,1,1,1,1,
-				1,1,1,1,1,1,1,1,
-				1,1,1,1,1,1,1,1,
-				1,1,1,1,1,1,1,1,
-				1,1,1,1,1,1,1,1
-		};
-		
-		int[] c = functionF(a, b);
-		for(int i = 0;i<c.length;i++){
-			System.out.print(c[i]);
-		}*/
-		
-		/*int[] f = inverseIP(d);
-		for(int i = 0;i<f.length;i++){
-			System.out.print(f[i]);
-		}*/
+		System.out.println("The encrypted cipher text: ");
+		for(int i=0;i<ciphertext.length;i++){
+			System.out.print(ciphertext[i]);
+		}
 	}
 }
