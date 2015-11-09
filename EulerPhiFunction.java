@@ -1,9 +1,10 @@
 /*
  * filename: EulerPhiFunction.java
  * 
- * Version: 1.0
+ * Version: 1.1
  * 
- * Revisions: $Log initial version$
+ * Revisions: 1.0 Basic implementation with in built function to compute the GCD.
+ * 			  1.1 Implemented Eulid'd Algorithm to compute the GCD amongst two large numbers.
  */
 
 import java.util.Scanner;
@@ -14,25 +15,6 @@ import java.util.Scanner;
  *
  */
 public class EulerPhiFunction {
-
-	
-	/**
-	 * 
-	 * this method computes the GCD by recursion.
-	 * 
-	 * @param a
-	 * @param b
-	 * @return
-	 */
-	public static int findGCD(int a, int b){
-		
-		if(b == 0){
-			return a;
-		}
-		
-		return findGCD(b, a%b);
-		
-	}
 	
 	
 	/**
@@ -44,7 +26,7 @@ public class EulerPhiFunction {
 	public static void findRelativelyPrime(int m){
 		
 		for(int iteration = 0;iteration < m; iteration++){
-			if(findGCD(m, iteration) == 1){
+			if(EuclidAlgoGCD.calculateGCD(m, iteration) == 1){
 				System.out.print(iteration+" ");
 			}
 		}
